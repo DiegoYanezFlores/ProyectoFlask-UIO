@@ -1,4 +1,4 @@
-#models.py
+#database/models.py
 from . import db
 
 class Usuario(db.Model):
@@ -59,6 +59,39 @@ class Libro(db.Model):
     anio = db.Column(db.Integer, nullable=False)
     isbn = db.Column(db.String(50), unique=True, nullable=False)
     stock = db.Column(db.Integer, nullable=False)
+
+    def to_dict(self):
+
+        return {
+            'id': self.id,
+            'titulo': self.titulo,
+            'autor': self.autor,
+            'editorial': self.editorial,
+            'anio': self.anio,
+            'isbn': self.isbn,
+            'stock': self.stock
+        }   
+    
+    def to_dict_relacional(self):
+        """Diccionario anidado que inyecta los objetos relacionados cargados en memoria."""
+        return {
+            'id': self.id,
+            'titulo': self.titulo,
+            'autor': self.autor,
+            'editorial': self.editorial,
+            'anio': self.anio,
+            'isbn': self.isbn,
+            'stock': self.stock,
+            'categoria': {
+                'id': self.categoria.id,
+                'nombre': self.categoria.nombre
+            } if self.categoria else None,
+            'registrado_por': {
+                'id': self.bibliotecario.id,
+                'nombre': self.bibliotecario.nombre,
+                'rol': self.bibliotecario.rol
+            } if self.bibliotecario else None
+        }
 
     #Relaciones con otras tablas
     categoria_id = db.Column(db.Integer, db.ForeignKey('categorias.id'), nullable=False)

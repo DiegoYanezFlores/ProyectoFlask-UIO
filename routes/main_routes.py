@@ -1,4 +1,4 @@
-# main_routes.py
+# routes/main_routes.py
 from flask import Blueprint, jsonify
 
 main_bp = Blueprint('main', __name__)

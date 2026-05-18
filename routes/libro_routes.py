@@ -1,7 +1,7 @@
-#libro_routes.py
-
+#routes/libro_routes.py
 from flask import Blueprint, jsonify, request
-from services import libro_service
+from repositories.libro_repository import LibroRepository
+from services.libro_service import LibroService
 
 # =========================================================
 # Este archivo contiene las rutas HTTP del módulo libros.
@@ -34,6 +34,10 @@ from services import libro_service
 #Creacion de un blueprint
 libros_bp = Blueprint('libros', __name__)
 
+# ARQUITECTURA DE CAPAS: Instanciamos e Inyectamos la dependencia
+_repo = LibroRepository()
+libro_service = LibroService(_repo)
+
 #CRUD de libros
 
 # Crear un libro
@@ -50,18 +54,17 @@ def crear_libro():
     if resultado['exito']:
         return jsonify({
             "mensaje": "Libro creado correctamente",
-            "libro": resultado['libro'].to_dict()
+            "libro": resultado['libro'].to_dict_relacional()
         }), 201
     
     # =====================================================
     # RESPUESTA DE ERROR
     # =====================================================  
     else:
-        return jsonify({
-            "mensaje": "Error al crear el libro",
-            "error": resultado['error']
-        }), 500 
-
+       return jsonify({
+        "mensaje": "Error de validación", 
+        "error": resultado['error']
+    }), 400
 
 
 # =========================================================
@@ -75,15 +78,14 @@ def crear_libro():
 
 @libros_bp.route('/libros', methods=['GET'])
 def obtener_libros():
-
-    # El service ya devuelve JSON serializable
     resultado = libro_service.obtener_libros()
-
+    if resultado['exito']:
+        # Retorna la lista con los diccionarios relacionales embebidos
+        return jsonify({"libros": resultado['libros']}), 200
     return jsonify({
-
-        "libros": resultado
-
-    }), 200
+        "mensaje": "Error al obtener libros", 
+        "error": resultado['error']
+    }), 500
 
 @libros_bp.route('/libros/<int:id>', methods=['GET'])
 def obtener_libro(id):
@@ -94,9 +96,7 @@ def obtener_libro(id):
     # RESPUESTA EXITOSA
     # =====================================================
     if resultado['exito']:
-        return jsonify({
-            "libro": resultado['libro'].to_dict()
-        }), 200
+        return jsonify({"libro": resultado['libro'].to_dict_relacional()}), 200
     
     # =====================================================
     # RESPUESTA DE ERROR

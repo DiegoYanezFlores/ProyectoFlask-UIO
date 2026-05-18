@@ -1,6 +1,7 @@
-#libro_repository.py
+#repositories/libro_repository.py
 from database import db
 from database.models import Libro
+from sqlalchemy.orm import joinedload
 
 # =========================================================
 # El repository SOLO se comunica con la base de datos.
@@ -16,26 +17,36 @@ from database.models import Libro
 # ❌ NO usamos jsonify
 # =========================================================
 
-def guardar_libro(libro):
+class LibroRepository:
 
-    db.session.add(libro)
-    db.session.commit()
-    return libro
+    
+    def guardar_libro(libro):
+
+        db.session.add(libro)
+        db.session.commit()
+        return libro
 
 
 # =========================================================
 # OBTENER TODOS LOS LIBROS
 # =========================================================
-def obtener_libros():
-
-    return Libro.query.all() 
+    def obtener_libros():
+    #OPTIMIZACIÓN PROFESIONAL: Trae los libros y sus relaciones de un solo golpe (Eager Loading)
+        return Libro.query.options(
+            joinedload(Libro.categoria), 
+            joinedload(Libro.usuario)
+        ).all()
 
 # =========================================================
 # OBTENER LIBRO POR ID
 # =========================================================
-def obtener_por_id(id):
+    def obtener_por_id(id):
 
-    return Libro.query.get(id)
+        #return Libro.query.get(id)
+        return Libro.query.options(
+            joinedload(Libro.categoria), 
+            joinedload(Libro.usuario)
+        ).get(id)
 
 # =========================================================
 # ACTUALIZAR LIBRO
@@ -45,15 +56,19 @@ def obtener_por_id(id):
 #
 # Solo necesitamos hacer commit().
 # =========================================================
-def actualizar_libro():
+    def actualizar_libro():
 
-    db.session.commit()
+        db.session.commit()
 
 # =========================================================
 # ELIMINAR LIBRO
 # =========================================================
-def eliminar_libro(libro):
+    def eliminar_libro(libro):
 
-    db.session.delete(libro)
+        db.session.delete(libro)
 
-    db.session.commit()
+        db.session.commit()
+
+    def obtener_todos_con_relaciones():
+    # Carga de un solo golpe el libro junto a su categoría y usuario encargado
+        return Libro.query.options(joinedload(Libro.categoria), joinedload(Libro.usuario)).all()

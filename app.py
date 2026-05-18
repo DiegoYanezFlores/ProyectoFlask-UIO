@@ -1,10 +1,12 @@
 #app.py
+import os
+# pyrefly: ignore [missing-import]
 from flask import Flask
 from flask_cors import CORS
 
 #1 IMPORTAMOS CONFIGURACION Y LA INICIALIZACION DE LA BASE DE DATOS
 from database import init_db
-from database.config import Config
+from database.config import Config, config_dict
 
 #IMPORTAR LOS BLUEPRINTS
 from routes.libro_routes import libros_bp
@@ -17,9 +19,10 @@ def create_app():
     #A. HABILITAR CORS (COMUNICAICON ENTRE EL FRONT Y EL BACKEND
     CORS(app)
 
-    # B. Cargar configuración centralizada
-    # Leemos todo desde el objeto Config en database/config.py
-    app.config.from_object(Config)
+    #B. DETECTAR EL ENTORNO ACTUAL Y CARGAR CONFIGURACIÓN
+    #Si no se define FLASK_ENV en el sistema, por defecto inicia en 'development'env = os.getenv('FLASK_ENV', 'development')
+    env = os.getenv('FLASK_ENV', 'development')
+    app.config.from_object(config_dict[env])
 
     # C. Inicializamos la base de datos
     init_db(app)
@@ -37,7 +40,11 @@ def create_app():
 # INICIALIZAR EL SERVIDOR
 
 if __name__ == '__main__':
-    # Imprimimos un mensaje de confirmación para los alumnos
+
+    # Crear la aplicación
+    app = create_app()
+
+    # Imprimimos un mensaje de confirmación para los usuarios.
     print("\n========================================")
     print("🚀 Servidor Flask iniciado exitosamente")
     print("📍 URL Base: http://localhost:5000")

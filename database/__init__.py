@@ -1,4 +1,4 @@
-#__init__.py
+#database/__init__.py
 from flask_sqlalchemy import SQLAlchemy
 
 # Creamos la instancia de la DB
